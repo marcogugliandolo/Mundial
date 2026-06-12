@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { PlusCircle, List, Settings, TrendingUp, Trophy } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
+import { PlusCircle, Settings, TrendingUp } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Participant, PorraData } from './types';
 import ParticipateForm from './components/ParticipateForm';
 import Leaderboard from './components/Leaderboard';
@@ -64,7 +64,6 @@ export default function App() {
   };
 
   const handleSaveOfficialResults = async (data: Participant) => {
-    // We reuse Participant form, but ignore id/name/timestamp
     const { id, name, timestamp, ...porraData } = data;
     try {
       await fetch('/api/official', {
@@ -81,22 +80,28 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen font-sans antialiased text-slate-800 bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
-      <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-20 shadow-sm">
+    <div className="min-h-screen font-sans antialiased text-slate-100 bg-slate-950 selection:bg-emerald-500/30 selection:text-emerald-200 w-full relative">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 -z-10" />
+      
+      <header className="bg-slate-950/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-20 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-indigo-500 to-blue-600 p-2 rounded-xl shadow-inner border border-white/10">
-              <SoccerBallIcon className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="font-extrabold text-xl tracking-tight text-white hidden sm:block">Porra Mundial</h1>
-            <h1 className="font-extrabold text-lg tracking-tight text-white sm:hidden">Porra Mundial</h1>
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+              className="bg-gradient-to-br from-emerald-500 to-emerald-700 p-2 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.5)] border border-white/20"
+            >
+              <SoccerBallIcon className="w-5 h-5 text-slate-950 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />
+            </motion.div>
+            <h1 className="font-display text-2xl tracking-widest text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.4)] hidden sm:block mt-1">PORRA MUNDIAL</h1>
+            <h1 className="font-display text-xl tracking-widest text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.4)] sm:hidden mt-1">PORRA MUNDIAL</h1>
           </div>
           
-          <div className="flex bg-slate-800/50 p-1 rounded-xl border border-white/5 backdrop-blur-md">
+          <div className="flex bg-slate-900/80 p-1 rounded-xl border border-white/5 backdrop-blur-md">
             <button
               onClick={() => setView('leaderboard')}
               className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                view === 'leaderboard' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                view === 'leaderboard' ? 'bg-slate-800 text-emerald-400 shadow-sm shadow-emerald-900/20 border border-emerald-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
               }`}
             >
               <TrendingUp className="w-4 h-4" />
@@ -105,7 +110,7 @@ export default function App() {
             <button
               onClick={() => setView('form')}
               className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                view === 'form' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                view === 'form' ? 'bg-slate-800 text-emerald-400 shadow-sm shadow-emerald-900/20 border border-emerald-500/30' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
               }`}
             >
               <PlusCircle className="w-4 h-4" />
@@ -114,7 +119,7 @@ export default function App() {
             <button
               onClick={() => setView('admin')}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                view === 'admin' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                view === 'admin' ? 'bg-emerald-600 text-slate-950 shadow-sm border border-emerald-400' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
               }`}
             >
               <Settings className="w-4 h-4" />
@@ -124,7 +129,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 pt-8 pb-28">
+      <main className="max-w-4xl mx-auto px-4 pt-8 pb-28 relative z-10">
         <AnimatePresence mode="wait">
           {view === 'leaderboard' ? (
             <Leaderboard 
@@ -155,9 +160,9 @@ export default function App() {
         <div className="fixed bottom-6 right-6 z-20">
           <button
             onClick={() => setView('form')}
-            className="flex items-center justify-center w-14 h-14 bg-slate-900 border border-slate-700 text-white rounded-full shadow-xl shadow-slate-900/20 hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all"
+            className="flex items-center justify-center w-14 h-14 bg-emerald-600 border border-emerald-400 text-slate-950 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:bg-emerald-500 hover:scale-105 active:scale-95 transition-all"
           >
-            <PlusCircle className="w-6 h-6 text-indigo-400" />
+            <PlusCircle className="w-6 h-6" />
           </button>
         </div>
       )}
