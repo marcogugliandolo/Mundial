@@ -1,6 +1,6 @@
 {
-  "name": "Porra Deportiva",
-  "description": "Aplicación sencilla e intuitiva para gestionar porras de apuestas deportivas.",
+  "name": "Porra Mundial",
+  "description": "Aplicación profesional para gestionar la porra del Mundial.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

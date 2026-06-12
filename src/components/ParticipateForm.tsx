@@ -116,7 +116,7 @@ export default function ParticipateForm({ onSubmit, onCancel, isAdmin = false, i
             {[1, 2, 3, 4, 5].filter(s => !(isAdmin && s === 1)).map(s => (
               <div key={s} className={cn(
                 "h-2 w-10 sm:w-12 rounded-full transition-colors",
-                s === step ? (isAdmin ? "bg-emerald-600" : "bg-blue-600") : s < step ? (isAdmin ? "bg-emerald-300" : "bg-blue-300") : "bg-slate-200"
+                s === step ? (isAdmin ? "bg-emerald-600" : "bg-indigo-600") : s < step ? (isAdmin ? "bg-emerald-300" : "bg-indigo-200") : "bg-slate-200"
               )} />
             ))}
           </div>
@@ -315,7 +315,7 @@ export default function ParticipateForm({ onSubmit, onCancel, isAdmin = false, i
                 }
                 className={cn(
                   "flex-1 py-3.5 px-4 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1",
-                  isAdmin ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"
+                  isAdmin ? "bg-emerald-600 hover:bg-emerald-700" : "bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/20"
                 )}
               >
                 Siguiente
@@ -327,7 +327,7 @@ export default function ParticipateForm({ onSubmit, onCancel, isAdmin = false, i
                 disabled={!isStep5Valid}
                 className={cn(
                   "flex-1 py-3.5 px-4 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
-                  isAdmin ? "bg-emerald-600 hover:bg-emerald-700" : "bg-emerald-600 hover:bg-emerald-700"
+                  isAdmin ? "bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20" : "bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/20"
                 )}
               >
                 <Save className="w-5 h-5" />
