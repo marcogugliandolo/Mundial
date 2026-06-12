@@ -32,40 +32,52 @@ export default function App() {
   const [view, setView] = useState<'leaderboard' | 'form' | 'admin'>('leaderboard');
 
   useEffect(() => {
-    const saved = localStorage.getItem('porra_participants');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        const valid = Array.isArray(parsed) ? parsed.filter((p: any) => p.knockout) : [];
+    fetch('/api/participants')
+      .then(res => res.json())
+      .then(data => {
+        const valid = Array.isArray(data) ? data.filter((p: any) => p.knockout) : [];
         setParticipants(valid);
-      } catch (e) {
-        console.error('Error loading bets', e);
-      }
-    }
-    
-    const savedOfficial = localStorage.getItem('porra_official_results');
-    if (savedOfficial) {
-      try {
-        setOfficialResults(JSON.parse(savedOfficial));
-      } catch (e) {
-        console.error('Error loading official results', e);
-      }
-    }
+      })
+      .catch(e => console.error('Error loading bets', e));
+
+    fetch('/api/official')
+      .then(res => res.json())
+      .then(data => {
+        setOfficialResults(data);
+      })
+      .catch(e => console.error('Error loading official results', e));
   }, []);
 
-  const handleAddParticipant = (participant: Participant) => {
-    const updated = [...participants, participant];
-    setParticipants(updated);
-    localStorage.setItem('porra_participants', JSON.stringify(updated));
-    setView('leaderboard');
+  const handleAddParticipant = async (participant: Participant) => {
+    try {
+      await fetch('/api/participants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(participant),
+      });
+      setParticipants(prev => [...prev, participant]);
+      setView('leaderboard');
+    } catch (e) {
+      console.error('Error saving participant', e);
+      alert('Error guardando la porra. Inténtalo de nuevo.');
+    }
   };
 
-  const handleSaveOfficialResults = (data: Participant) => {
+  const handleSaveOfficialResults = async (data: Participant) => {
     // We reuse Participant form, but ignore id/name/timestamp
     const { id, name, timestamp, ...porraData } = data;
-    setOfficialResults(porraData);
-    localStorage.setItem('porra_official_results', JSON.stringify(porraData));
-    setView('leaderboard');
+    try {
+      await fetch('/api/official', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(porraData),
+      });
+      setOfficialResults(porraData);
+      setView('leaderboard');
+    } catch (e) {
+      console.error('Error saving official results', e);
+      alert('Error guardando los resultados. Inténtalo de nuevo.');
+    }
   };
 
   return (
