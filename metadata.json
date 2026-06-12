@@ -1,0 +1,7 @@
+{
+  "name": "Porra Deportiva",
+  "description": "Aplicación sencilla e intuitiva para gestionar porras de apuestas deportivas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
