@@ -1,6 +1,5 @@
 import express from "express";
-import sqlite3 from "sqlite3";
-import { open, Database } from "sqlite";
+import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 import { createServer as createViteServer } from "vite";
@@ -13,27 +12,22 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-let db: Database;
+// Connect to SQLite DB
+const db = new Database(path.join(dataDir, "porra.sqlite"));
+
+// Initialize DB tables
+db.exec(`
+  CREATE TABLE IF NOT EXISTS participants (
+    id TEXT PRIMARY KEY,
+    data TEXT
+  );
+  CREATE TABLE IF NOT EXISTS config (
+    key TEXT PRIMARY KEY,
+    value TEXT
+  );
+`);
 
 async function startServer() {
-  // Connect to SQLite DB
-  db = await open({
-    filename: path.join(dataDir, "porra.sqlite"),
-    driver: sqlite3.Database
-  });
-
-  // Initialize DB tables
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS participants (
-      id TEXT PRIMARY KEY,
-      data TEXT
-    );
-    CREATE TABLE IF NOT EXISTS config (
-      key TEXT PRIMARY KEY,
-      value TEXT
-    );
-  `);
-
   const app = express();
   app.use(express.json());
 
@@ -41,9 +35,9 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  app.get("/api/participants", async (req, res) => {
+  app.get("/api/participants", (req, res) => {
     try {
-      const rows = await db.all("SELECT data FROM participants");
+      const rows = db.prepare("SELECT data FROM participants").all() as { data: string }[];
       const participants = rows.map((r) => JSON.parse(r.data));
       res.json(participants);
     } catch (e) {
@@ -52,16 +46,14 @@ async function startServer() {
     }
   });
 
-  app.post("/api/participants", async (req, res) => {
+  app.post("/api/participants", (req, res) => {
     try {
       const participant = req.body;
       if (!participant.id) {
         return res.status(400).json({ error: "Missing ID" });
       }
-      await db.run("INSERT OR REPLACE INTO participants (id, data) VALUES (?, ?)", [
-        participant.id,
-        JSON.stringify(participant),
-      ]);
+      const stmt = db.prepare("INSERT OR REPLACE INTO participants (id, data) VALUES (?, ?)");
+      stmt.run(participant.id, JSON.stringify(participant));
       res.json({ success: true, participant });
     } catch (e) {
       console.error(e);
@@ -69,9 +61,9 @@ async function startServer() {
     }
   });
 
-  app.get("/api/official", async (req, res) => {
+  app.get("/api/official", (req, res) => {
     try {
-      const row = await db.get("SELECT value FROM config WHERE key = ?", ["official_results"]);
+      const row = db.prepare("SELECT value FROM config WHERE key = ?").get("official_results") as { value: string } | undefined;
       if (row) {
         res.json(JSON.parse(row.value));
       } else {
@@ -83,13 +75,11 @@ async function startServer() {
     }
   });
 
-  app.post("/api/official", async (req, res) => {
+  app.post("/api/official", (req, res) => {
     try {
       const data = req.body;
-      await db.run("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)", [
-        "official_results",
-        JSON.stringify(data),
-      ]);
+      const stmt = db.prepare("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)");
+      stmt.run("official_results", JSON.stringify(data));
       res.json({ success: true });
     } catch (e) {
       console.error(e);
