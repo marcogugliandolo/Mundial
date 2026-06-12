@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Participant, GroupPhasePrediction } from '../types';
+import { useState, useEffect, FormEvent } from 'react';
+import { Participant, GroupPhasePrediction, PorraData } from '../types';
 import { GROUPS, ALL_TEAMS, SPAIN_STAGES, SPAIN_PLAYERS, PICHICHI_CANDIDATES, BALON_DE_ORO_CANDIDATES, GUANTE_DE_ORO_CANDIDATES, CONMEBOL_TEAMS, CAF_TEAMS, AFC_TEAMS } from '../data';
 import { Save, User, ChevronRight, ChevronLeft, Flag, Trophy, Target, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -8,39 +8,48 @@ import { cn } from '../utils';
 interface Props {
   onSubmit: (participant: Participant) => void;
   onCancel: () => void;
+  isAdmin?: boolean;
+  initialData?: PorraData | null;
+  key?: string;
 }
 
-export default function ParticipateForm({ onSubmit, onCancel }: Props) {
-  const [step, setStep] = useState(1);
-  const [name, setName] = useState('');
+export default function ParticipateForm({ onSubmit, onCancel, isAdmin = false, initialData }: Props) {
+  const [step, setStep] = useState(isAdmin ? 2 : 1);
+  const [name, setName] = useState(isAdmin ? 'Resultados Oficiales' : '');
   
   // State for Step 2: Groups
   const [groupPhase, setGroupPhase] = useState<GroupPhasePrediction[]>(
-    GROUPS.map(g => ({ group: g.name, first: '', second: '' }))
+    initialData?.groupPhase || GROUPS.map(g => ({ group: g.name, first: '', second: '' }))
   );
   
   // State for Step 3: Knockout
-  const [semifinalists, setSemifinalists] = useState<string[]>(['', '', '', '']);
-  const [finalists, setFinalists] = useState<string[]>(['', '']);
-  const [champion, setChampion] = useState<string>('');
+  const [semifinalists, setSemifinalists] = useState<string[]>(
+    initialData?.knockout.semifinalists || ['', '', '', '']
+  );
+  const [finalists, setFinalists] = useState<string[]>(
+    initialData?.knockout.finalists || ['', '']
+  );
+  const [champion, setChampion] = useState<string>(
+    initialData?.knockout.champion || ''
+  );
 
   // State for Step 4: Spain & Awards
-  const [eliminationStage, setEliminationStage] = useState('');
-  const [topScorer, setTopScorer] = useState('');
-  const [pichichi, setPichichi] = useState('');
-  const [balonDeOro, setBalonDeOro] = useState('');
-  const [guanteDeOro, setGuanteDeOro] = useState('');
+  const [eliminationStage, setEliminationStage] = useState(initialData?.spain.eliminationStage || '');
+  const [topScorer, setTopScorer] = useState(initialData?.spain.topScorer || '');
+  const [pichichi, setPichichi] = useState(initialData?.awards.pichichi || '');
+  const [balonDeOro, setBalonDeOro] = useState(initialData?.awards.balonDeOro || '');
+  const [guanteDeOro, setGuanteDeOro] = useState(initialData?.awards.guanteDeOro || '');
 
   // State for Step 5: Stats
-  const [revelacion, setRevelacion] = useState('');
-  const [decepcion, setDecepcion] = useState('');
-  const [masGoleadora, setMasGoleadora] = useState('');
-  const [masTarjetas, setMasTarjetas] = useState('');
-  const [penaltisFaseFinal, setPenaltisFaseFinal] = useState<'Sí' | 'No' | ''>('');
-  const [mejorConmebol, setMejorConmebol] = useState('');
-  const [mejorCaf, setMejorCaf] = useState('');
-  const [mejorAfc, setMejorAfc] = useState('');
-  const [golesFinal, setGolesFinal] = useState<number | ''>('');
+  const [revelacion, setRevelacion] = useState(initialData?.stats.revelacion || '');
+  const [decepcion, setDecepcion] = useState(initialData?.stats.decepcion || '');
+  const [masGoleadora, setMasGoleadora] = useState(initialData?.stats.masGoleadora || '');
+  const [masTarjetas, setMasTarjetas] = useState(initialData?.stats.masTarjetas || '');
+  const [penaltisFaseFinal, setPenaltisFaseFinal] = useState<'Sí' | 'No' | ''>(initialData?.stats.penaltisFaseFinal || '');
+  const [mejorConmebol, setMejorConmebol] = useState(initialData?.stats.mejorConmebol || '');
+  const [mejorCaf, setMejorCaf] = useState(initialData?.stats.mejorCaf || '');
+  const [mejorAfc, setMejorAfc] = useState(initialData?.stats.mejorAfc || '');
+  const [golesFinal, setGolesFinal] = useState<number | ''>(initialData?.stats.golesFinal ?? '');
 
   const updateGroup = (groupName: string, field: 'first' | 'second', val: string) => {
     setGroupPhase(prev => prev.map(g => g.group === groupName ? { ...g, [field]: val } : g));
@@ -56,12 +65,12 @@ export default function ParticipateForm({ onSubmit, onCancel }: Props) {
   const isStep4Valid = eliminationStage && topScorer && pichichi && balonDeOro && guanteDeOro;
   const isStep5Valid = revelacion && decepcion && masGoleadora && masTarjetas && penaltisFaseFinal && mejorConmebol && mejorCaf && mejorAfc && golesFinal !== '';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!isStep5Valid) return;
 
     onSubmit({
-      id: crypto.randomUUID(),
+      id: isAdmin ? 'admin' : crypto.randomUUID(),
       name: name.trim(),
       groupPhase,
       knockout: { semifinalists, finalists, champion },
@@ -88,11 +97,11 @@ export default function ParticipateForm({ onSubmit, onCancel }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto pb-24">
-      {/* Progress header */}
       <div className="mb-8 p-4 bg-white rounded-2xl shadow-sm border border-slate-200">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">
+              {isAdmin && "Resultados Oficiales - "}
               {step === 1 && "Paso 1: Identificación"}
               {step === 2 && "Paso 2: Fase de Grupos"}
               {step === 3 && "Paso 3: Fase Final"}
@@ -100,14 +109,14 @@ export default function ParticipateForm({ onSubmit, onCancel }: Props) {
               {step === 5 && "Paso 5: Rendimiento"}
             </h2>
             <p className="text-slate-500 text-sm mt-1">
-              Completando tu porra para el Mundial de 48 selecciones.
+              {isAdmin ? "Ingresa los resultados reales para calcular los puntos." : "Completando tu porra para el Mundial de 48 selecciones."}
             </p>
           </div>
           <div className="flex gap-2">
-            {[1, 2, 3, 4, 5].map(s => (
+            {[1, 2, 3, 4, 5].filter(s => !(isAdmin && s === 1)).map(s => (
               <div key={s} className={cn(
                 "h-2 w-10 sm:w-12 rounded-full transition-colors",
-                s === step ? "bg-blue-600" : s < step ? "bg-blue-300" : "bg-slate-200"
+                s === step ? (isAdmin ? "bg-emerald-600" : "bg-blue-600") : s < step ? (isAdmin ? "bg-emerald-300" : "bg-blue-300") : "bg-slate-200"
               )} />
             ))}
           </div>
@@ -116,7 +125,7 @@ export default function ParticipateForm({ onSubmit, onCancel }: Props) {
 
       <form onSubmit={handleSubmit}>
         <AnimatePresence mode="wait">
-          {step === 1 && (
+          {step === 1 && !isAdmin && (
             <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Tu Nombre o Alias</label>
@@ -268,10 +277,9 @@ export default function ParticipateForm({ onSubmit, onCancel }: Props) {
           )}
         </AnimatePresence>
 
-        {/* Footer Navigation */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-200 flex justify-center gap-3 z-10">
           <div className="w-full max-w-3xl flex gap-3">
-            {step === 1 ? (
+            {(step === 1 && !isAdmin) || (step === 2 && isAdmin) ? (
               <button
                 type="button"
                 onClick={onCancel}
@@ -305,7 +313,10 @@ export default function ParticipateForm({ onSubmit, onCancel }: Props) {
                   (step === 3 && !isStep3Valid) ||
                   (step === 4 && !isStep4Valid)
                 }
-                className="flex-1 py-3.5 px-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                className={cn(
+                  "flex-1 py-3.5 px-4 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1",
+                  isAdmin ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"
+                )}
               >
                 Siguiente
                 <ChevronRight className="w-5 h-5" />
@@ -314,10 +325,13 @@ export default function ParticipateForm({ onSubmit, onCancel }: Props) {
                <button
                 type="submit"
                 disabled={!isStep5Valid}
-                className="flex-1 py-3.5 px-4 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className={cn(
+                  "flex-1 py-3.5 px-4 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
+                  isAdmin ? "bg-emerald-600 hover:bg-emerald-700" : "bg-emerald-600 hover:bg-emerald-700"
+                )}
               >
                 <Save className="w-5 h-5" />
-                Guardar Porra
+                {isAdmin ? "Guardar Resultados" : "Guardar Porra"}
               </button>
             )}
           </div>

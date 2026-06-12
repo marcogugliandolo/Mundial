@@ -33,14 +33,17 @@ export interface StatsPrediction {
   golesFinal: number | '';
 }
 
-export interface Participant {
-  id: string;
-  name: string;
+export interface PorraData {
   groupPhase: GroupPhasePrediction[];
   knockout: KnockoutPrediction;
   spain: SpainPrediction;
   awards: AwardsPrediction;
   stats: StatsPrediction;
+}
+
+export interface Participant extends PorraData {
+  id: string;
+  name: string;
   timestamp: number;
 }
 
